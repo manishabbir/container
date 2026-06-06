@@ -1,4 +1,4 @@
-import { createServerSupabaseClient, createServerAdminClient } from "@/lib/supabase-server"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
@@ -10,27 +10,12 @@ export default function NewContainerPage() {
     const { data: { user } } = await sessionClient.auth.getUser()
     if (!user) redirect("/login")
 
-    // Use admin client to bypass RLS for writes
-    const supabase = createServerAdminClient()
-
     const name = formData.get("name") as string
     const description = formData.get("description") as string || ""
     const currency = formData.get("currency") as string || "USD"
     const tax_rate = parseFloat(formData.get("tax_rate") as string) || 0
 
-    // Ensure profile exists before creating container
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single()
-
-    if (!profile) {
-      redirect(`/containers/new?error=${encodeURIComponent("Your profile is not set up. Please login again.")}`)
-      return
-    }
-
-    const { error } = await supabase.from("containers").insert({
+    const { error } = await sessionClient.from("containers").insert({
       name,
       description,
       primary_foreign_currency: currency,
