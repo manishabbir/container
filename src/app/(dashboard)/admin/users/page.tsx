@@ -23,6 +23,9 @@ export default async function AdminUsersPage() {
   async function createUser(formData: FormData) {
     "use server"
     const supabase = await createServerSupabaseClient()
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    if (!currentUser) redirect("/login")
+
     const email = formData.get("email") as string
     const password = formData.get("password") as string
     const full_name = formData.get("full_name") as string
@@ -41,7 +44,7 @@ export default async function AdminUsersPage() {
       const { error: profileError } = await supabase.from("profiles").insert({
         id: authUser.user.id, email, full_name, role,
         country, currency, is_active: true,
-        created_by: user.id,
+        created_by: currentUser.id,
         commission_rate, commission_type: "percentage",
         max_discount_percent: role === "inside_country" ? 10.0 : 0,
       })
