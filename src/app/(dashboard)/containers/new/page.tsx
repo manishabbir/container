@@ -1,13 +1,17 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createServerSupabaseClient, createServerAdminClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
 export default function NewContainerPage() {
   async function createContainer(formData: FormData) {
     "use server"
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // Use session client to read cookies
+    const sessionClient = await createServerSupabaseClient()
+    const { data: { user } } = await sessionClient.auth.getUser()
     if (!user) redirect("/login")
+
+    // Use admin client to bypass RLS for writes
+    const supabase = await createServerAdminClient()
 
     const name = formData.get("name") as string
     const description = formData.get("description") as string || ""
