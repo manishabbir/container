@@ -18,6 +18,18 @@ export default function NewContainerPage() {
     const currency = formData.get("currency") as string || "USD"
     const tax_rate = parseFloat(formData.get("tax_rate") as string) || 0
 
+    // Ensure profile exists before creating container
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single()
+
+    if (!profile) {
+      redirect(`/containers/new?error=${encodeURIComponent("Your profile is not set up. Please login again.")}`)
+      return
+    }
+
     const { error } = await supabase.from("containers").insert({
       name,
       description,
