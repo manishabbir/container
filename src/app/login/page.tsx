@@ -29,7 +29,7 @@ export default async function LoginPage({
 
     // Auto-create profile if it doesn't exist (first login)
     if (data?.user) {
-      const adminClient = await createServerAdminClient()
+      const adminClient = createServerAdminClient()
       const { data: existing } = await adminClient
         .from("profiles")
         .select("id")

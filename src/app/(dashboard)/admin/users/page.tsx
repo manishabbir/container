@@ -16,7 +16,7 @@ export default async function AdminUsersPage() {
 
   if (!existingProfile) {
     // First user to visit Admin gets admin role
-    const adminClient = await createServerAdminClient()
+    const adminClient = createServerAdminClient()
     await adminClient.from("profiles").upsert({
       id: user.id,
       email: user.email,
@@ -39,7 +39,7 @@ export default async function AdminUsersPage() {
 
   async function createUser(formData: FormData) {
     "use server"
-    const adminClient = await createServerAdminClient()
+    const adminClient = createServerAdminClient()
     const { data: { user: currentUser } } = await adminClient.auth.getUser()
     if (!currentUser) redirect("/login")
 

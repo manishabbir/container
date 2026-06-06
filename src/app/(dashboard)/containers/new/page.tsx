@@ -11,7 +11,7 @@ export default function NewContainerPage() {
     if (!user) redirect("/login")
 
     // Use admin client to bypass RLS for writes
-    const supabase = await createServerAdminClient()
+    const supabase = createServerAdminClient()
 
     const name = formData.get("name") as string
     const description = formData.get("description") as string || ""
