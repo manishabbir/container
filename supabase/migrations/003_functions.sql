@@ -40,7 +40,7 @@ DECLARE
   v_gross_profit NUMERIC := 0; v_expenses_home NUMERIC := 0;
   v_expenses_abroad NUMERIC := 0; v_funds_received NUMERIC := 0;
   v_funds_sent_pkr NUMERIC := 0; v_funds_sent_foreign NUMERIC := 0;
-  v_foreign_currency TEXT; v_damages NUMERIC := 0;
+  v_foreign_currency TEXT; v_damages NUMERIC := 0; v_net_profit NUMERIC := 0;
   v_discounts NUMERIC := 0; v_commissions NUMERIC := 0;
   v_exchange_gl NUMERIC := 0; v_invested NUMERIC := 0;
 BEGIN
