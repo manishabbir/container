@@ -302,7 +302,7 @@ CREATE POLICY "All authenticated users can view container summaries"
   ON container_summary FOR SELECT 
   USING (auth.role() = 'authenticated');
 
-CREATE POLICY "System updates container summaries via triggers" 
+CREATE POLICY "System inserts container summaries via triggers" 
   ON container_summary FOR INSERT 
   WITH CHECK (auth.role() = 'authenticated');
 
@@ -317,11 +317,11 @@ CREATE POLICY "All authenticated users can view container balances"
   ON container_balances FOR SELECT 
   USING (auth.role() = 'authenticated');
 
-CREATE POLICY "System updates container balances via triggers" 
+CREATE POLICY "System inserts container balances via triggers" 
   ON container_balances FOR INSERT 
   WITH CHECK (auth.role() = 'authenticated');
 
-CREATE POLICY "System updates container balances via triggers" 
+CREATE POLICY "System updates container balances" 
   ON container_balances FOR UPDATE 
   USING (auth.role() = 'authenticated');
 
