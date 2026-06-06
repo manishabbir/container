@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createServerSupabaseClient, createServerAdminClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
@@ -15,7 +15,9 @@ export default async function AdminUsersPage() {
     .single()
 
   if (!existingProfile) {
-    await supabase.from("profiles").upsert({
+    // First user to visit Admin gets admin role
+    const adminClient = await createServerAdminClient()
+    await adminClient.from("profiles").upsert({
       id: user.id,
       email: user.email,
       full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin",
@@ -37,8 +39,8 @@ export default async function AdminUsersPage() {
 
   async function createUser(formData: FormData) {
     "use server"
-    const supabase = await createServerSupabaseClient()
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    const adminClient = await createServerAdminClient()
+    const { data: { user: currentUser } } = await adminClient.auth.getUser()
     if (!currentUser) redirect("/login")
 
     const email = formData.get("email") as string
@@ -49,8 +51,8 @@ export default async function AdminUsersPage() {
     const currency = formData.get("currency") as string || "PKR"
     const commission_rate = parseFloat(formData.get("commission_rate") as string) || 0
 
-    // Create auth user via admin API
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+    // Create auth user via admin API (needs service_role key)
+    const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
       email, password, email_confirm: true,
     })
 
