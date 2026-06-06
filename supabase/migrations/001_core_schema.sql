@@ -194,8 +194,14 @@ CREATE INDEX IF NOT EXISTS idx_payment_plans_sale ON payment_plans(sale_id);
 CREATE INDEX IF NOT EXISTS idx_payment_plans_customer ON payment_plans(customer_id);
 
 -- Add FK from sales to payment_plans
-ALTER TABLE sales ADD CONSTRAINT fk_sales_payment_plan 
-  FOREIGN KEY (payment_plan_id) REFERENCES payment_plans(id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_sales_payment_plan'
+  ) THEN
+    ALTER TABLE sales ADD CONSTRAINT fk_sales_payment_plan 
+      FOREIGN KEY (payment_plan_id) REFERENCES payment_plans(id);
+  END IF;
+END $$;
 
 -- ==========================================
 -- 8. INSTALLMENT PAYMENTS
@@ -524,8 +530,14 @@ CREATE INDEX IF NOT EXISTS idx_commissions_user ON commissions(user_id);
 CREATE INDEX IF NOT EXISTS idx_commissions_status ON commissions(status);
 
 -- Add FK for ledger_entries.commission_id
-ALTER TABLE ledger_entries ADD CONSTRAINT fk_ledger_commission 
-  FOREIGN KEY (commission_id) REFERENCES commissions(id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_ledger_commission'
+  ) THEN
+    ALTER TABLE ledger_entries ADD CONSTRAINT fk_ledger_commission 
+      FOREIGN KEY (commission_id) REFERENCES commissions(id);
+  END IF;
+END $$;
 
 -- ==========================================
 -- 21. CONTAINER FOREIGN CURRENCIES
