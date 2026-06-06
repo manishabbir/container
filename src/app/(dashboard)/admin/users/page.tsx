@@ -1,4 +1,4 @@
-import { createServerSupabaseClient, createServerAdminClient } from "@/lib/supabase-server"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
@@ -15,9 +15,7 @@ export default async function AdminUsersPage() {
     .single()
 
   if (!existingProfile) {
-    // First user to visit Admin gets admin role
-    const adminClient = createServerAdminClient()
-    await adminClient.from("profiles").upsert({
+    await supabase.from("profiles").upsert({
       id: user.id,
       email: user.email,
       full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin",
@@ -39,8 +37,8 @@ export default async function AdminUsersPage() {
 
   async function createUser(formData: FormData) {
     "use server"
-    const adminClient = createServerAdminClient()
-    const { data: { user: currentUser } } = await adminClient.auth.getUser()
+    const supabase = await createServerSupabaseClient()
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
     if (!currentUser) redirect("/login")
 
     const email = formData.get("email") as string
@@ -51,23 +49,15 @@ export default async function AdminUsersPage() {
     const currency = formData.get("currency") as string || "PKR"
     const commission_rate = parseFloat(formData.get("commission_rate") as string) || 0
 
-    // Create auth user via admin API (needs service_role key)
-    const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
-      email, password, email_confirm: true,
+    // Call API route that uses service role key
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/admin/create-user`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, full_name, role, country, currency, commission_rate, created_by: currentUser.id }),
     })
 
-    if (authError) redirect(`/admin/users?error=${encodeURIComponent(authError.message)}`)
-
-    if (authUser?.user) {
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: authUser.user.id, email, full_name, role,
-        country, currency, is_active: true,
-        created_by: currentUser.id,
-        commission_rate, commission_type: "percentage",
-        max_discount_percent: role === "inside_country" ? 10.0 : 0,
-      })
-      if (profileError) redirect(`/admin/users?error=${encodeURIComponent(profileError.message)}`)
-    }
+    const result = await res.json()
+    if (!res.ok) redirect(`/admin/users?error=${encodeURIComponent(result.error || "Failed to create user")}`)
     redirect("/admin/users?message=User created successfully")
   }
 

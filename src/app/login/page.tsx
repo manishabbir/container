@@ -1,4 +1,4 @@
-import { createServerSupabaseClient, createServerAdminClient } from "@/lib/supabase-server"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
@@ -29,15 +29,14 @@ export default async function LoginPage({
 
     // Auto-create profile if it doesn't exist (first login)
     if (data?.user) {
-      const adminClient = createServerAdminClient()
-      const { data: existing } = await adminClient
+      const { data: existing } = await supabase
         .from("profiles")
         .select("id")
         .eq("id", data.user.id)
         .single()
 
       if (!existing) {
-        await adminClient.from("profiles").insert({
+        await supabase.from("profiles").insert({
           id: data.user.id,
           email: data.user.email,
           full_name: email.split("@")[0],
