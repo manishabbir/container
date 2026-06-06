@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_profiles_role ON profiles(role);
-CREATE INDEX idx_profiles_active ON profiles(is_active);
+CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_active ON profiles(is_active);
 
 -- ==========================================
 -- 2. CONTAINERS
@@ -46,9 +46,9 @@ CREATE TABLE IF NOT EXISTS containers (
   notes TEXT
 );
 
-CREATE UNIQUE INDEX idx_containers_default ON containers(default_container) WHERE default_container = true;
-CREATE INDEX idx_containers_status ON containers(status);
-CREATE INDEX idx_containers_created_by ON containers(created_by);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_containers_default ON containers(default_container) WHERE default_container = true;
+CREATE INDEX IF NOT EXISTS idx_containers_status ON containers(status);
+CREATE INDEX IF NOT EXISTS idx_containers_created_by ON containers(created_by);
 
 -- ==========================================
 -- 3. CUSTOMERS
@@ -68,9 +68,9 @@ CREATE TABLE IF NOT EXISTS customers (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_customers_name ON customers(name);
-CREATE INDEX idx_customers_city ON customers(city);
-CREATE INDEX idx_customers_created_by ON customers(created_by);
+CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
+CREATE INDEX IF NOT EXISTS idx_customers_city ON customers(city);
+CREATE INDEX IF NOT EXISTS idx_customers_created_by ON customers(created_by);
 
 -- ==========================================
 -- 4. SUPPLIERS
@@ -90,8 +90,8 @@ CREATE TABLE IF NOT EXISTS suppliers (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_suppliers_name ON suppliers(name);
-CREATE INDEX idx_suppliers_country ON suppliers(country);
+CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
+CREATE INDEX IF NOT EXISTS idx_suppliers_country ON suppliers(country);
 
 -- ==========================================
 -- 5. INVENTORY ITEMS
@@ -127,8 +127,8 @@ CREATE TABLE IF NOT EXISTS inventory_items (
     CHECK (quantity_sold + quantity_damaged + quantity_returned + quantity_reserved <= quantity)
 );
 
-CREATE INDEX idx_inventory_container ON inventory_items(container_id);
-CREATE INDEX idx_inventory_status ON inventory_items(status);
+CREATE INDEX IF NOT EXISTS idx_inventory_container ON inventory_items(container_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_status ON inventory_items(status);
 
 -- ==========================================
 -- 6. SALES
@@ -163,11 +163,11 @@ CREATE TABLE IF NOT EXISTS sales (
   deleted_by UUID REFERENCES profiles(id)
 );
 
-CREATE INDEX idx_sales_container ON sales(container_id);
-CREATE INDEX idx_sales_customer ON sales(customer_id);
-CREATE INDEX idx_sales_status ON sales(status);
-CREATE INDEX idx_sales_date ON sales(sale_date);
-CREATE INDEX idx_sales_inventory_item ON sales(inventory_item_id);
+CREATE INDEX IF NOT EXISTS idx_sales_container ON sales(container_id);
+CREATE INDEX IF NOT EXISTS idx_sales_customer ON sales(customer_id);
+CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status);
+CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(sale_date);
+CREATE INDEX IF NOT EXISTS idx_sales_inventory_item ON sales(inventory_item_id);
 
 -- ==========================================
 -- 7. PAYMENT PLANS
@@ -190,8 +190,8 @@ CREATE TABLE IF NOT EXISTS payment_plans (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_payment_plans_sale ON payment_plans(sale_id);
-CREATE INDEX idx_payment_plans_customer ON payment_plans(customer_id);
+CREATE INDEX IF NOT EXISTS idx_payment_plans_sale ON payment_plans(sale_id);
+CREATE INDEX IF NOT EXISTS idx_payment_plans_customer ON payment_plans(customer_id);
 
 -- Add FK from sales to payment_plans
 ALTER TABLE sales ADD CONSTRAINT fk_sales_payment_plan 
@@ -216,8 +216,8 @@ CREATE TABLE IF NOT EXISTS installment_payments (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_installments_plan ON installment_payments(payment_plan_id);
-CREATE INDEX idx_installments_status ON installment_payments(status);
+CREATE INDEX IF NOT EXISTS idx_installments_plan ON installment_payments(payment_plan_id);
+CREATE INDEX IF NOT EXISTS idx_installments_status ON installment_payments(status);
 
 -- ==========================================
 -- 9. TRANSACTIONS
@@ -251,12 +251,12 @@ CREATE TABLE IF NOT EXISTS transactions (
   deleted_by UUID REFERENCES profiles(id)
 );
 
-CREATE INDEX idx_transactions_container ON transactions(container_id);
-CREATE INDEX idx_transactions_status ON transactions(status);
-CREATE INDEX idx_transactions_type ON transactions(transaction_type);
-CREATE INDEX idx_transactions_from_user ON transactions(from_user_id);
-CREATE INDEX idx_transactions_to_user ON transactions(to_user_id);
-CREATE INDEX idx_transactions_created ON transactions(created_at);
+CREATE INDEX IF NOT EXISTS idx_transactions_container ON transactions(container_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(transaction_type);
+CREATE INDEX IF NOT EXISTS idx_transactions_from_user ON transactions(from_user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_to_user ON transactions(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_created ON transactions(created_at);
 
 -- ==========================================
 -- 10. EXPENSES
@@ -284,10 +284,10 @@ CREATE TABLE IF NOT EXISTS expenses (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_expenses_container ON expenses(container_id);
-CREATE INDEX idx_expenses_side ON expenses(expense_side);
-CREATE INDEX idx_expenses_category ON expenses(category);
-CREATE INDEX idx_expenses_status ON expenses(status);
+CREATE INDEX IF NOT EXISTS idx_expenses_container ON expenses(container_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_side ON expenses(expense_side);
+CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+CREATE INDEX IF NOT EXISTS idx_expenses_status ON expenses(status);
 
 -- ==========================================
 -- 11. EXPENSE ALLOCATIONS
@@ -304,8 +304,8 @@ CREATE TABLE IF NOT EXISTS expense_allocations (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_exp_alloc_expense ON expense_allocations(expense_id);
-CREATE INDEX idx_exp_alloc_item ON expense_allocations(inventory_item_id);
+CREATE INDEX IF NOT EXISTS idx_exp_alloc_expense ON expense_allocations(expense_id);
+CREATE INDEX IF NOT EXISTS idx_exp_alloc_item ON expense_allocations(inventory_item_id);
 
 -- ==========================================
 -- 12. CONTAINER SUMMARY
@@ -344,7 +344,7 @@ CREATE TABLE IF NOT EXISTS container_summary (
   UNIQUE(container_id)
 );
 
-CREATE INDEX idx_container_summary_profit ON container_summary(net_profit_pkr DESC);
+CREATE INDEX IF NOT EXISTS idx_container_summary_profit ON container_summary(net_profit_pkr DESC);
 
 -- ==========================================
 -- 13. CONTAINER BALANCES
@@ -390,9 +390,9 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_ledger_user ON ledger_entries(user_id);
-CREATE INDEX idx_ledger_container ON ledger_entries(container_id);
-CREATE INDEX idx_ledger_created ON ledger_entries(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ledger_user ON ledger_entries(user_id);
+CREATE INDEX IF NOT EXISTS idx_ledger_container ON ledger_entries(container_id);
+CREATE INDEX IF NOT EXISTS idx_ledger_created ON ledger_entries(created_at DESC);
 
 -- ==========================================
 -- 15. NOTIFICATIONS
@@ -411,9 +411,9 @@ CREATE TABLE IF NOT EXISTS notifications (
   read_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_notifications_user ON notifications(user_id);
-CREATE INDEX idx_notifications_unread ON notifications(user_id) WHERE is_read = false;
-CREATE INDEX idx_notifications_created ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id) WHERE is_read = false;
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
 
 -- ==========================================
 -- 16. AUDIT LOGS
@@ -430,10 +430,10 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_audit_user ON audit_logs(user_id);
-CREATE INDEX idx_audit_entity ON audit_logs(entity_type, entity_id);
-CREATE INDEX idx_audit_action ON audit_logs(action);
-CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_logs(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at DESC);
 
 -- ==========================================
 -- 17. EXCHANGE RATES
@@ -453,9 +453,9 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_exchange_rates_currency ON exchange_rates(from_currency, to_currency);
-CREATE INDEX idx_exchange_rates_date ON exchange_rates(effective_date DESC);
-CREATE INDEX idx_exchange_rates_container ON exchange_rates(container_id);
+CREATE INDEX IF NOT EXISTS idx_exchange_rates_currency ON exchange_rates(from_currency, to_currency);
+CREATE INDEX IF NOT EXISTS idx_exchange_rates_date ON exchange_rates(effective_date DESC);
+CREATE INDEX IF NOT EXISTS idx_exchange_rates_container ON exchange_rates(container_id);
 
 -- ==========================================
 -- 18. INVENTORY ADJUSTMENTS
@@ -476,9 +476,9 @@ CREATE TABLE IF NOT EXISTS inventory_adjustments (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_inv_adj_container ON inventory_adjustments(container_id);
-CREATE INDEX idx_inv_adj_item ON inventory_adjustments(inventory_item_id);
-CREATE INDEX idx_inv_adj_status ON inventory_adjustments(status);
+CREATE INDEX IF NOT EXISTS idx_inv_adj_container ON inventory_adjustments(container_id);
+CREATE INDEX IF NOT EXISTS idx_inv_adj_item ON inventory_adjustments(inventory_item_id);
+CREATE INDEX IF NOT EXISTS idx_inv_adj_status ON inventory_adjustments(status);
 
 -- ==========================================
 -- 19. CLOSING ADJUSTMENTS
@@ -496,8 +496,8 @@ CREATE TABLE IF NOT EXISTS closing_adjustments (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_closing_adj_container ON closing_adjustments(container_id);
-CREATE INDEX idx_closing_adj_status ON closing_adjustments(status);
+CREATE INDEX IF NOT EXISTS idx_closing_adj_container ON closing_adjustments(container_id);
+CREATE INDEX IF NOT EXISTS idx_closing_adj_status ON closing_adjustments(status);
 
 -- ==========================================
 -- 20. COMMISSIONS
@@ -519,9 +519,9 @@ CREATE TABLE IF NOT EXISTS commissions (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_commissions_container ON commissions(container_id);
-CREATE INDEX idx_commissions_user ON commissions(user_id);
-CREATE INDEX idx_commissions_status ON commissions(status);
+CREATE INDEX IF NOT EXISTS idx_commissions_container ON commissions(container_id);
+CREATE INDEX IF NOT EXISTS idx_commissions_user ON commissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_commissions_status ON commissions(status);
 
 -- Add FK for ledger_entries.commission_id
 ALTER TABLE ledger_entries ADD CONSTRAINT fk_ledger_commission 
@@ -545,7 +545,7 @@ CREATE TABLE IF NOT EXISTS container_foreign_currencies (
   UNIQUE(container_id, currency)
 );
 
-CREATE INDEX idx_for_currency_container ON container_foreign_currencies(container_id);
+CREATE INDEX IF NOT EXISTS idx_for_currency_container ON container_foreign_currencies(container_id);
 
 -- ==========================================
 -- 22. TAX RECORDS
@@ -570,8 +570,8 @@ CREATE TABLE IF NOT EXISTS tax_records (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_tax_records_container ON tax_records(container_id);
-CREATE INDEX idx_tax_records_type ON tax_records(tax_type);
+CREATE INDEX IF NOT EXISTS idx_tax_records_container ON tax_records(container_id);
+CREATE INDEX IF NOT EXISTS idx_tax_records_type ON tax_records(tax_type);
 
 -- ==========================================
 -- 23. CONTAINER OWNERSHIP SHARES
@@ -596,8 +596,8 @@ CREATE TABLE IF NOT EXISTS container_ownership_shares (
   UNIQUE(container_id, user_id)
 );
 
-CREATE INDEX idx_ownership_container ON container_ownership_shares(container_id);
-CREATE INDEX idx_ownership_user ON container_ownership_shares(user_id);
+CREATE INDEX IF NOT EXISTS idx_ownership_container ON container_ownership_shares(container_id);
+CREATE INDEX IF NOT EXISTS idx_ownership_user ON container_ownership_shares(user_id);
 
 -- ==========================================
 -- 24. CONTAINER CLOSING PAYOUTS
@@ -620,9 +620,9 @@ CREATE TABLE IF NOT EXISTS container_closing_payouts (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_payouts_container ON container_closing_payouts(container_id);
-CREATE INDEX idx_payouts_user ON container_closing_payouts(user_id);
-CREATE INDEX idx_payouts_status ON container_closing_payouts(status);
+CREATE INDEX IF NOT EXISTS idx_payouts_container ON container_closing_payouts(container_id);
+CREATE INDEX IF NOT EXISTS idx_payouts_user ON container_closing_payouts(user_id);
+CREATE INDEX IF NOT EXISTS idx_payouts_status ON container_closing_payouts(status);
 
 -- ==========================================
 -- 25. SYSTEM WIDE SUMMARY
@@ -648,7 +648,7 @@ CREATE TABLE IF NOT EXISTS system_wide_summary (
   last_calculated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_system_summary_date ON system_wide_summary(report_date DESC);
+CREATE INDEX IF NOT EXISTS idx_system_summary_date ON system_wide_summary(report_date DESC);
 
 -- ==========================================
 -- END OF MIGRATION V001
