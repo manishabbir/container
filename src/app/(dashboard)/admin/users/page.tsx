@@ -7,13 +7,28 @@ export default async function AdminUsersPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: profile } = await supabase
+  // Auto-create admin profile if it doesn't exist
+  const { data: existingProfile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single()
 
-  if (profile?.role !== "admin") redirect("/")
+  if (!existingProfile) {
+    await supabase.from("profiles").upsert({
+      id: user.id,
+      email: user.email,
+      full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin",
+      role: "admin",
+      country: "Pakistan",
+      currency: "PKR",
+      is_active: true,
+      commission_rate: 0,
+      commission_type: "none",
+    })
+  } else if (existingProfile.role !== "admin") {
+    redirect("/")
+  }
 
   const { data: users } = await supabase
     .from("profiles")
@@ -34,6 +49,7 @@ export default async function AdminUsersPage() {
     const currency = formData.get("currency") as string || "PKR"
     const commission_rate = parseFloat(formData.get("commission_rate") as string) || 0
 
+    // Create auth user via admin API
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
       email, password, email_confirm: true,
     })
