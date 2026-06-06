@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createServerSupabaseClient, createServerAdminClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
@@ -15,7 +15,7 @@ export default async function LoginPage({
     const password = formData.get("password") as string
     const supabase = await createServerSupabaseClient()
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -25,6 +25,30 @@ export default async function LoginPage({
       if (error.message?.includes("rate_limit")) msg = "Too many attempts. Please try again later."
       if (error.message?.includes("disabled") || error.message?.includes("inactive")) msg = "Account has been deactivated. Contact admin."
       redirect(`/login?error=${encodeURIComponent(msg)}`)
+    }
+
+    // Auto-create profile if it doesn't exist (first login)
+    if (data?.user) {
+      const adminClient = await createServerAdminClient()
+      const { data: existing } = await adminClient
+        .from("profiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .single()
+
+      if (!existing) {
+        await adminClient.from("profiles").insert({
+          id: data.user.id,
+          email: data.user.email,
+          full_name: email.split("@")[0],
+          role: "inside_country",
+          country: "Pakistan",
+          currency: "PKR",
+          is_active: true,
+          commission_rate: 0,
+          commission_type: "none",
+        })
+      }
     }
 
     redirect("/")
